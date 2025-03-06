@@ -39,13 +39,13 @@ export const tetrominos: Record<TetrominoName, Matrix> = {
 };
 
 export const colors: Record<TetrominoName, string> = {
-  I: 'cyan',
-  O: 'yellow',
-  T: 'purple',
-  S: 'green',
-  Z: 'red',
-  J: 'blue',
-  L: 'orange',
+  I: '#d5615a',
+  O: '#cd8144',
+  T: '#c59b23',
+  S: '#5ad561',
+  Z: '#40c2b1',
+  J: '#00aee6',
+  L: '#615ad5',
 };
 
 export const cellSize = 32;
