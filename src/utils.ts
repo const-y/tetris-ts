@@ -1,3 +1,4 @@
+import { cellSize, colors } from './constants';
 import { Matrix, PlayField, Tetromino, TetrominoName } from './types';
 
 export function assertNotNull<T>(
@@ -23,9 +24,12 @@ export function rotate(matrix: Matrix): Matrix {
   return result;
 }
 
-export function isValidMove(tetromino: Tetromino, playField: PlayField) {
-  const { matrix, row: cellRow, col: cellCol } = tetromino;
-
+export function isValidMove(
+  playField: PlayField,
+  matrix: Matrix,
+  cellRow: number,
+  cellCol: number
+) {
   for (let row = 0; row < matrix.length; row++) {
     for (let col = 0; col < matrix[row].length; col++) {
       if (
@@ -70,4 +74,49 @@ export function generatePlayField(
   }
 
   return playField;
+}
+
+export function renderPlayField(
+  context: CanvasRenderingContext2D,
+  playField: PlayField
+) {
+  for (let row = 0; row < 20; row++) {
+    for (let col = 0; col < 10; col++) {
+      if (playField[row][col]) {
+        const name = playField[row][col];
+
+        if (typeof name === 'string') {
+          context.fillStyle = colors[name];
+        }
+
+        context.fillRect(
+          col * cellSize,
+          row * cellSize,
+          cellSize - 1,
+          cellSize - 1
+        );
+      }
+    }
+  }
+}
+
+export function renderTetromino(
+  context: CanvasRenderingContext2D,
+  tetromino: Tetromino
+) {
+  context.fillStyle = colors[tetromino.name];
+
+  for (let row = 0; row < tetromino.matrix.length; row++) {
+    for (let col = 0; col < tetromino.matrix[row].length; col++) {
+      if (tetromino.matrix[row][col]) {
+        // и снова рисуем на один пиксель меньше
+        context.fillRect(
+          (tetromino.col + col) * cellSize,
+          (tetromino.row + row) * cellSize,
+          cellSize - 1,
+          cellSize - 1
+        );
+      }
+    }
+  }
 }

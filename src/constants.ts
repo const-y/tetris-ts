@@ -47,3 +47,5 @@ export const colors: Record<TetrominoName, string> = {
   J: 'blue',
   L: 'orange',
 };
+
+export const cellSize = 32;
