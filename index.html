@@ -4,10 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>Tetris</title>
   </head>
   <body>
-    <canvas id="game" width="320" height="640"></canvas>
+    <div id="root">
+      <canvas id="game" width="320" height="640"></canvas>
+      <div>
+        <canvas id="next" width="128" height="128"></canvas>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

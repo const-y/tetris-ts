@@ -12,6 +12,11 @@ body {
   height: 100vh;
 }
 
+#root {
+  display: flex;
+  gap: 16px;
+}
+
 #game {
   border: 1px solid gray;
   background-color: white;

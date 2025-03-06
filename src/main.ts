@@ -10,6 +10,8 @@ import {
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const context = canvas.getContext('2d');
+const nextCanvas = document.getElementById('next') as HTMLCanvasElement;
+const nextContext = nextCanvas.getContext('2d');
 
 const cellSize = 32;
 // массив с последовательностями фигур, на старте — пустой
@@ -182,9 +184,7 @@ function loop() {
       }
     }
 
-    if (!context) {
-      throw new Error('context is undefined');
-    }
+    assertNotNull(context);
 
     // не забываем про цвет текущей фигуры
     context.fillStyle = colors[tetromino.name];
@@ -197,6 +197,29 @@ function loop() {
           context.fillRect(
             (tetromino.col + col) * cellSize,
             (tetromino.row + row) * cellSize,
+            cellSize - 1,
+            cellSize - 1
+          );
+        }
+      }
+    }
+
+    assertNotNull(nextContext);
+
+    // рисуем следующую фигуру
+    const nextTetrominoName = tetrominoSequence[tetrominoSequence.length - 1];
+    const nextTetrominoMatrix = tetrominos[nextTetrominoName];
+    nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+    nextContext.fillStyle = colors[nextTetrominoName];
+
+    // отрисовываем её
+    for (let row = 0; row < nextTetrominoMatrix.length; row++) {
+      for (let col = 0; col < nextTetrominoMatrix[row].length; col++) {
+        if (nextTetrominoMatrix[row][col]) {
+          // и снова рисуем на один пиксель меньше
+          nextContext.fillRect(
+            col * cellSize,
+            row * cellSize,
             cellSize - 1,
             cellSize - 1
           );
