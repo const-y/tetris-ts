@@ -1,5 +1,9 @@
 import { Matrix, TetrominoName } from './types';
 
+export const rowCount = 20;
+export const colCount = 10;
+export const cellSize = 32;
+
 export const tetrominos: Record<TetrominoName, Matrix> = {
   I: [
     [0, 0, 0, 0],
@@ -47,5 +51,3 @@ export const colors: Record<TetrominoName, string> = {
   J: '#00aee6',
   L: '#615ad5',
 };
-
-export const cellSize = 32;

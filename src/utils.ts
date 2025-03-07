@@ -1,4 +1,4 @@
-import { cellSize, colors } from './constants';
+import { cellSize, colCount, colors, rowCount } from './constants';
 import { Matrix, PlayField, Tetromino, TetrominoName } from './types';
 
 export function assertNotNull<T>(
@@ -10,11 +10,29 @@ export function assertNotNull<T>(
   }
 }
 
-export function getRandomInt(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
+export function assertNotUndefined<T>(
+  value: T | undefined,
+  message = 'Value cannot be undefined'
+): asserts value is T {
+  if (value === undefined) {
+    throw new Error(message);
+  }
+}
 
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+export function shuffle<T>(array: T[]): T[] {
+  return [...array].sort(() => Math.random() - 0.5);
+}
+
+export function* randomGenerator() {
+  let bag: TetrominoName[] = [];
+
+  while (true) {
+    if (bag.length === 0) {
+      bag = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+      bag = shuffle(bag);
+    }
+    yield bag.pop();
+  }
 }
 
 export function rotate(matrix: Matrix): Matrix {
@@ -46,23 +64,7 @@ export function isValidMove(
   return true;
 }
 
-export function generateSequence(): TetrominoName[] {
-  const tetrominoSequence: TetrominoName[] = [];
-  const sequence: TetrominoName[] = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
-
-  while (sequence.length) {
-    const rand = getRandomInt(0, sequence.length - 1);
-    const name = sequence.splice(rand, 1)[0];
-    tetrominoSequence.push(name);
-  }
-
-  return tetrominoSequence;
-}
-
-export function generatePlayField(
-  rowCount: number = 20,
-  colCount: number = 10
-): PlayField {
+export function generatePlayField(): PlayField {
   const playField: PlayField = [];
 
   for (let row = -2; row < rowCount; row++) {
@@ -80,8 +82,8 @@ export function renderPlayField(
   context: CanvasRenderingContext2D,
   playField: PlayField
 ) {
-  for (let row = 0; row < 20; row++) {
-    for (let col = 0; col < 10; col++) {
+  for (let row = 0; row < rowCount; row++) {
+    for (let col = 0; col < colCount; col++) {
       if (playField[row][col]) {
         const name = playField[row][col];
 
