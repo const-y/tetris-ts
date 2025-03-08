@@ -5,6 +5,7 @@ import {
   assertNotNull,
   assertNotUndefined,
   generatePlayField,
+  getDelay,
   increaseScore,
   isValidMove,
   randomGenerator,
@@ -25,12 +26,13 @@ const tetrominoQueue: TetrominoName[] = [
 ];
 
 const playField: PlayField = generatePlayField();
-let count = 0;
 let currentTetromino = getNextTetromino();
 let rAF: number | null = null;
 let gameOver = false;
 let score = 0;
 let highScore = parseInt(localStorage.getItem('highScore') ?? '0', 10);
+let previousTime = 0;
+let level = 1;
 
 document.getElementById('record')!.textContent = `Record: ${highScore}`;
 
@@ -92,6 +94,10 @@ function placeTetromino() {
   const clearedRowsCount = clearRows();
   score = increaseScore(score, clearedRowsCount);
 
+  if (clearedRowsCount > 0) {
+    level = Math.floor(score / 1000) + 1;
+  }
+
   if (score > highScore) {
     highScore = score;
     localStorage.setItem('highScore', highScore.toString());
@@ -99,8 +105,11 @@ function placeTetromino() {
 
   document.getElementById('score')!.textContent = `Score: ${score}`;
   document.getElementById('record')!.textContent = `Record: ${highScore}`;
+  document.getElementById('level')!.textContent = `Level: ${level}`;
 
-  currentTetromino = getNextTetromino();
+  requestAnimationFrame(() => {
+    currentTetromino = getNextTetromino();
+  });
 }
 
 function showGameOver() {
@@ -121,23 +130,17 @@ function showGameOver() {
   context.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
 }
 
-// главный цикл игры
-function loop() {
+function loop(timestamp: number) {
   rAF = requestAnimationFrame(loop);
   assertNotNull(context);
-
   context.clearRect(0, 0, canvas.width, canvas.height);
-
   renderPlayField(context, playField);
 
-  // рисуем текущую фигуру
   if (currentTetromino) {
-    // фигура сдвигается вниз каждые 35 кадров
-    if (++count > 35) {
+    if (timestamp - previousTime > getDelay(level)) {
+      previousTime = timestamp;
       currentTetromino.row++;
-      count = 0;
 
-      // если движение закончилось — рисуем фигуру в поле и проверяем, можно ли удалить строки
       if (
         !isValidMove(
           playField,
@@ -155,7 +158,6 @@ function loop() {
     renderTetromino(context, currentTetromino);
     assertNotNull(nextContext);
 
-    // рисуем следующую фигуру
     const nextTetrominoName = tetrominoQueue[0];
     const nextTetrominoMatrix = tetrominos[nextTetrominoName];
 

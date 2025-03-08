@@ -32,9 +32,14 @@ body {
   top: 290px;
 }
 
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .label {
   color: #333333;
   font-family: 'Press Start 2P', monospace;
   font-size: 16px;
-  position: absolute;
 }

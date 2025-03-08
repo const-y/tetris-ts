@@ -134,3 +134,13 @@ export function increaseScore(
 
   return currentScore;
 }
+
+export function getDelay(
+  level: number,
+  initialDelay: number = 750,
+  reductionFactor: number = 0.9,
+  minDelay: number = 50
+): number {
+  const delay = initialDelay * Math.pow(reductionFactor, level - 1);
+  return Math.max(delay, minDelay); // Ограничиваем минимальной задержкой
+}
