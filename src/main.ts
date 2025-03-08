@@ -5,6 +5,7 @@ import {
   assertNotNull,
   assertNotUndefined,
   generatePlayField,
+  increaseScore,
   isValidMove,
   randomGenerator,
   renderPlayField,
@@ -53,9 +54,27 @@ function getNextTetromino(): Tetromino {
   };
 }
 
-function placeTetromino() {
-  let rowsCleared = 0;
+function clearRows(): number {
+  let clearedRowsCount = 0;
 
+  for (let row = playField.length - 1; row >= 0; ) {
+    if (playField[row].every((cell) => !!cell)) {
+      for (let r = row; r >= 0; r--) {
+        for (let c = 0; c < playField[r].length; c++) {
+          playField[r][c] = playField[r - 1][c];
+        }
+      }
+
+      clearedRowsCount++;
+    } else {
+      row--;
+    }
+  }
+
+  return clearedRowsCount;
+}
+
+function placeTetromino() {
   for (let row = 0; row < currentTetromino.matrix.length; row++) {
     for (let col = 0; col < currentTetromino.matrix[row].length; col++) {
       if (currentTetromino.matrix[row][col]) {
@@ -70,28 +89,8 @@ function placeTetromino() {
     }
   }
 
-  // проверяем, чтобы заполненные ряды очистились снизу вверх
-  for (let row = playField.length - 1; row >= 0; ) {
-    // если ряд заполнен
-    if (playField[row].every((cell) => !!cell)) {
-      // очищаем его и опускаем всё вниз на одну клетку
-      for (let r = row; r >= 0; r--) {
-        for (let c = 0; c < playField[r].length; c++) {
-          playField[r][c] = playField[r - 1][c];
-        }
-      }
-
-      rowsCleared++;
-    } else {
-      // переходим к следующему ряду
-      row--;
-    }
-  }
-
-  // Начисляем очки (по стандарту Tetris: 1 row = 100, 2 = 300, 3 = 500, 4 = 800)
-  if (rowsCleared > 0) {
-    score += [0, 100, 300, 500, 800][rowsCleared];
-  }
+  const clearedRowsCount = clearRows();
+  score = increaseScore(score, clearedRowsCount);
 
   if (score > highScore) {
     highScore = score;

@@ -122,3 +122,15 @@ export function renderTetromino(
     }
   }
 }
+
+export function increaseScore(
+  currentScore: number,
+  clearedRowsCount: number
+): number {
+  // Начисляем очки (по стандарту Tetris: 1 row = 100, 2 = 300, 3 = 500, 4 = 800)
+  if (clearedRowsCount > 0) {
+    return currentScore + [0, 100, 300, 500, 800][clearedRowsCount];
+  }
+
+  return currentScore;
+}
