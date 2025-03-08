@@ -56,24 +56,37 @@ function getNextTetromino(): Tetromino {
   };
 }
 
-function clearRows(): number {
-  let clearedRowsCount = 0;
+function findFullRows(): number[] {
+  const fullRows: number[] = [];
 
-  for (let row = playField.length - 1; row >= 0; ) {
+  for (let row = 0; row < playField.length; row++) {
     if (playField[row].every((cell) => !!cell)) {
-      for (let r = row; r >= 0; r--) {
-        for (let c = 0; c < playField[r].length; c++) {
-          playField[r][c] = playField[r - 1][c];
-        }
-      }
-
-      clearedRowsCount++;
-    } else {
-      row--;
+      fullRows.push(row);
     }
   }
 
-  return clearedRowsCount;
+  return fullRows;
+}
+
+function removeFullRows(fullRows: number[]) {
+  for (let row of fullRows) {
+    playField.splice(row, 1);
+    playField.unshift(new Array(playField[0].length).fill(0));
+  }
+}
+
+function clearRows(): number {
+  const deletingRowIndexes = findFullRows();
+
+  if (deletingRowIndexes.length > 0) {
+    setTimeout(() => {
+      removeFullRows(deletingRowIndexes);
+    }, 300);
+
+    return deletingRowIndexes.length;
+  }
+
+  return deletingRowIndexes.length;
 }
 
 function placeTetromino() {
