@@ -24,11 +24,14 @@ const tetrominoQueue: TetrominoName[] = [
 ];
 
 const playField: PlayField = generatePlayField();
-
 let count = 0;
 let currentTetromino = getNextTetromino();
 let rAF: number | null = null;
 let gameOver = false;
+let score = 0;
+let highScore = parseInt(localStorage.getItem('highScore') ?? '0', 10);
+
+document.getElementById('record')!.textContent = `Record: ${highScore}`;
 
 function getNextTetromino(): Tetromino {
   tetrominoQueue.push(tetrominoGenerator.next().value as TetrominoName);
@@ -51,7 +54,8 @@ function getNextTetromino(): Tetromino {
 }
 
 function placeTetromino() {
-  // обрабатываем все строки и столбцы в игровом поле
+  let rowsCleared = 0;
+
   for (let row = 0; row < currentTetromino.matrix.length; row++) {
     for (let col = 0; col < currentTetromino.matrix[row].length; col++) {
       if (currentTetromino.matrix[row][col]) {
@@ -76,11 +80,27 @@ function placeTetromino() {
           playField[r][c] = playField[r - 1][c];
         }
       }
+
+      rowsCleared++;
     } else {
       // переходим к следующему ряду
       row--;
     }
   }
+
+  // Начисляем очки (по стандарту Tetris: 1 row = 100, 2 = 300, 3 = 500, 4 = 800)
+  if (rowsCleared > 0) {
+    score += [0, 100, 300, 500, 800][rowsCleared];
+  }
+
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('highScore', highScore.toString());
+  }
+
+  document.getElementById('score')!.textContent = `Score: ${score}`;
+  document.getElementById('record')!.textContent = `Record: ${highScore}`;
+
   currentTetromino = getNextTetromino();
 }
 
@@ -96,14 +116,15 @@ function showGameOver() {
   context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
   context.globalAlpha = 1;
   context.fillStyle = 'white';
-  context.font = '36px monospace';
+  context.font = '24px "Press Start 2P", monospace';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2);
+  context.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
 }
 
 // главный цикл игры
 function loop() {
+  rAF = requestAnimationFrame(loop);
   assertNotNull(context);
 
   context.clearRect(0, 0, canvas.width, canvas.height);
@@ -148,8 +169,6 @@ function loop() {
       col: 0,
     });
   }
-
-  rAF = requestAnimationFrame(loop);
 }
 
 document.addEventListener('keydown', function (e) {
