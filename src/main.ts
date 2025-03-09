@@ -33,6 +33,7 @@ let score = 0;
 let highScore = parseInt(localStorage.getItem('highScore') ?? '0', 10);
 let previousTime = 0;
 let level = 1;
+let deletingRowIndexes: number[] = [];
 
 document.getElementById('record')!.textContent = `Record: ${highScore}`;
 
@@ -73,20 +74,21 @@ function removeFullRows(fullRows: number[]) {
     playField.splice(row, 1);
     playField.unshift(new Array(playField[0].length).fill(0));
   }
+
+  deletingRowIndexes = [];
 }
 
 function clearRows(): number {
-  const deletingRowIndexes = findFullRows();
+  deletingRowIndexes = findFullRows();
+  const removingRowsCount = deletingRowIndexes.length;
 
   if (deletingRowIndexes.length > 0) {
     setTimeout(() => {
       removeFullRows(deletingRowIndexes);
     }, 300);
-
-    return deletingRowIndexes.length;
   }
 
-  return deletingRowIndexes.length;
+  return removingRowsCount;
 }
 
 function placeTetromino() {
@@ -147,7 +149,7 @@ function loop(timestamp: number) {
   rAF = requestAnimationFrame(loop);
   assertNotNull(context);
   context.clearRect(0, 0, canvas.width, canvas.height);
-  renderPlayField(context, playField);
+  renderPlayField(context, playField, deletingRowIndexes, timestamp);
 
   if (currentTetromino) {
     if (timestamp - previousTime > getDelay(level)) {

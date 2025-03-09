@@ -80,15 +80,19 @@ export function generatePlayField(): PlayField {
 
 export function renderPlayField(
   context: CanvasRenderingContext2D,
-  playField: PlayField
+  playField: PlayField,
+  deletingRowIndexes: number[],
+  timestamp: number
 ) {
   for (let row = 0; row < rowCount; row++) {
     for (let col = 0; col < colCount; col++) {
       if (playField[row][col]) {
         const name = playField[row][col];
+        const isDeleting = deletingRowIndexes.includes(row);
 
         if (typeof name === 'string') {
-          context.fillStyle = colors[name];
+          const blinking = timestamp % 100 > 50 ? colors[name] : 'white';
+          context.fillStyle = isDeleting ? blinking : colors[name];
         }
 
         context.fillRect(
