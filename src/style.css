@@ -43,3 +43,23 @@ body {
   font-family: 'Press Start 2P', monospace;
   font-size: 16px;
 }
+
+#start {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
+  color: #fff;
+  background: #5ad561;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0px #000;
+  cursor: pointer;
+}
+
+#start:hover {
+  background: #49b74e;
+  box-shadow: 2px 2px 0px #000;
+}
+
+.controls {
+  margin-top: 24px;
+}

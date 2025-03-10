@@ -51,3 +51,9 @@ export const colors: Record<TetrominoName, string> = {
   J: '#00aee6',
   L: '#615ad5',
 };
+
+export enum GameStatus {
+  Running,
+  Paused,
+  GameOver,
+}

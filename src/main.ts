@@ -1,4 +1,4 @@
-import { tetrominos } from './constants';
+import { GameStatus, tetrominos } from './constants';
 import './style.css';
 import { PlayField, Tetromino, TetrominoName } from './types';
 import {
@@ -27,13 +27,12 @@ const tetrominoQueue: TetrominoName[] = [
 
 const playField: PlayField = generatePlayField();
 let currentTetromino = getNextTetromino();
-let rAF: number | null = null;
-let gameOver = false;
 let score = 0;
 let highScore = parseInt(localStorage.getItem('highScore') ?? '0', 10);
 let previousTime = 0;
 let level = 1;
 let deletingRowIndexes: number[] = [];
+let gameStatus = GameStatus.Paused;
 
 document.getElementById('record')!.textContent = `Record: ${highScore}`;
 
@@ -130,10 +129,7 @@ function placeTetromino() {
 function showGameOver() {
   assertNotNull(context);
 
-  if (rAF) {
-    cancelAnimationFrame(rAF);
-  }
-  gameOver = true;
+  gameStatus = GameStatus.GameOver;
   context.fillStyle = 'black';
   context.globalAlpha = 0.75;
   context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
@@ -146,7 +142,10 @@ function showGameOver() {
 }
 
 function loop(timestamp: number) {
-  rAF = requestAnimationFrame(loop);
+  if (gameStatus !== GameStatus.Running) {
+    return;
+  }
+
   assertNotNull(context);
   context.clearRect(0, 0, canvas.width, canvas.height);
   renderPlayField(context, playField, deletingRowIndexes, timestamp);
@@ -185,11 +184,19 @@ function loop(timestamp: number) {
       col: 0,
     });
   }
+
+  requestAnimationFrame(loop);
 }
 
+const startButton = document.getElementById('start') as HTMLButtonElement;
+startButton.addEventListener('click', () => {
+  gameStatus = GameStatus.Running;
+  startButton.style.display = 'none';
+  requestAnimationFrame(loop);
+});
+
 document.addEventListener('keydown', function (e) {
-  // если игра закончилась — сразу выходим
-  if (gameOver) return;
+  if (gameStatus !== GameStatus.Running) return;
 
   // стрелки влево и вправо
   if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -241,6 +248,3 @@ document.addEventListener('keydown', function (e) {
     currentTetromino.row = row;
   }
 });
-
-// старт игры
-rAF = requestAnimationFrame(loop);
