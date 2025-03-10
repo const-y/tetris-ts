@@ -43,13 +43,13 @@ export const tetrominos: Record<TetrominoName, Matrix> = {
 };
 
 export const colors: Record<TetrominoName, string> = {
-  I: '#d5615a',
-  O: '#cd8144',
-  T: '#c59b23',
-  S: '#5ad561',
-  Z: '#40c2b1',
-  J: '#00aee6',
-  L: '#615ad5',
+  I: '#00aee6',
+  J: '#4A90E2',
+  L: '#FF9F50',
+  O: '#FFC107',
+  S: '#6FDA87',
+  T: '#A97FFF',
+  Z: '#FF6B6B',
 };
 
 export enum GameStatus {

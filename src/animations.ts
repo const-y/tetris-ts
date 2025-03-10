@@ -7,14 +7,14 @@ export function gameOverAnimation(
   callback: () => void
 ) {
   let previousTime = 0;
-  const delay = 100;
+  const delay = 25;
   let row = rowCount - 1;
   const tetrominoGenerator = randomGenerator();
+  let step = 0;
 
   function showGameOver() {
-    context.fillStyle = 'white';
-    context.fillStyle = 'white';
-    context.font = '32px "Press Start 2P", monospace';
+    context.fillStyle = 'black';
+    context.font = '24px "Press Start 2P", monospace';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(
@@ -26,7 +26,7 @@ export function gameOverAnimation(
 
   function loop(timestamp: number) {
     if (row < 0) {
-      return callback();
+      step = 1;
     }
 
     if (timestamp > previousTime + delay) {
@@ -34,7 +34,11 @@ export function gameOverAnimation(
 
       for (let col = 0; col < colCount; col++) {
         const tetrominoName = tetrominoGenerator.next().value as TetrominoName;
-        context.fillStyle = colors[tetrominoName];
+        if (step === 0) {
+          context.fillStyle = colors[tetrominoName];
+        } else {
+          context.fillStyle = 'white';
+        }
 
         context.fillRect(
           col * cellSize,
@@ -44,11 +48,16 @@ export function gameOverAnimation(
         );
       }
 
-      if (row === 0) {
-        showGameOver();
+      if (step === 0) {
+        row--;
+      } else {
+        row++;
       }
 
-      row--;
+      if (row === rowCount - 1 && step === 1) {
+        showGameOver();
+        callback();
+      }
     }
 
     requestAnimationFrame(loop);
@@ -78,7 +87,7 @@ export function deletingAnimation(
     }
 
     rows.forEach((row) => {
-      context.fillStyle = repeat % 2 === 0 ? 'white' : 'indianred';
+      context.fillStyle = repeat % 2 === 0 ? 'white' : '#FF7043';
       for (let col = 0; col < colCount; col++) {
         context.fillRect(
           col * cellSize,
