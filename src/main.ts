@@ -42,12 +42,8 @@ function getNextTetromino(): Tetromino {
   const name = tetrominoQueue.shift();
   assertNotUndefined(name);
   const matrix = tetrominos[name];
-
-  // I и O стартуют с середины, остальные — чуть левее
   const col = playField[0].length / 2 - Math.ceil(matrix[0].length / 2);
-
-  // I начинает с 21 строки (смещение -1), а все остальные — со строки 22 (смещение -2)
-  const row = name === 'I' ? -1 : -2;
+  const row = -2;
 
   return {
     name,
@@ -81,9 +77,9 @@ function clearRows(): number {
 
   if (deletingRowIndexes.length > 0) {
     gameStatus = GameStatus.Animation;
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    stopCurrentAnimation();
     assertNotNull(context);
-    deletingAnimation(context, deletingRowIndexes, () => {
+    deletingAnimation(context, deletingRowIndexes, playField, () => {
       removeFullRows(deletingRowIndexes);
       gameStatus = GameStatus.Running;
       animationFrameId = requestAnimationFrame(loop);
@@ -99,10 +95,7 @@ function placeTetromino() {
       if (currentTetromino.matrix[row][col]) {
         // если край фигуры после установки вылезает за границы поля, то игра закончилась
         if (currentTetromino.row + row < 0) {
-          if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
-          }
-
+          stopCurrentAnimation();
           gameStatus = GameStatus.Animation;
           assertNotNull(context);
 
@@ -133,6 +126,8 @@ function placeTetromino() {
   document.getElementById('score')!.textContent = `Score: ${score}`;
   document.getElementById('record')!.textContent = `Record: ${highScore}`;
   document.getElementById('level')!.textContent = `Level: ${level}`;
+
+  currentTetromino = getNextTetromino();
 
   requestAnimationFrame(() => {
     currentTetromino = getNextTetromino();
@@ -246,3 +241,9 @@ document.addEventListener('keydown', function (e) {
     currentTetromino.row = row;
   }
 });
+
+function stopCurrentAnimation() {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+  }
+}

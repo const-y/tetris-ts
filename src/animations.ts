@@ -1,5 +1,5 @@
 import { cellSize, colCount, colors, rowCount } from './constants';
-import { TetrominoName } from './types';
+import { PlayField, TetrominoName } from './types';
 import { randomGenerator } from './utils';
 
 export function gameOverAnimation(
@@ -69,6 +69,7 @@ export function gameOverAnimation(
 export function deletingAnimation(
   context: CanvasRenderingContext2D,
   rows: number[],
+  field: PlayField,
   callback: () => void
 ) {
   let previousTime = 0;
@@ -87,8 +88,11 @@ export function deletingAnimation(
     }
 
     rows.forEach((row) => {
-      context.fillStyle = repeat % 2 === 0 ? 'white' : '#FF7043';
       for (let col = 0; col < colCount; col++) {
+        const name = field[row][col];
+        const color = typeof name === 'string' ? colors[name] : 'lightgray';
+        context.fillStyle = repeat % 2 === 0 ? 'white' : color;
+
         context.fillRect(
           col * cellSize,
           row * cellSize,
