@@ -56,4 +56,5 @@ export enum GameStatus {
   Running,
   Paused,
   GameOver,
+  Animation,
 }

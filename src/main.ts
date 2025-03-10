@@ -1,3 +1,4 @@
+import { gameOverAnimation } from './animations';
 import { GameStatus, tetrominos } from './constants';
 import './style.css';
 import { PlayField, Tetromino, TetrominoName } from './types';
@@ -96,7 +97,13 @@ function placeTetromino() {
       if (currentTetromino.matrix[row][col]) {
         // если край фигуры после установки вылезает за границы поля, то игра закончилась
         if (currentTetromino.row + row < 0) {
-          return showGameOver();
+          assertNotNull(context);
+          gameStatus = GameStatus.Animation;
+
+          return gameOverAnimation(context, () => {
+            gameStatus = GameStatus.GameOver;
+            requestAnimationFrame(loop);
+          });
         }
         // если всё в порядке, то записываем в массив игрового поля нашу фигуру
         playField[currentTetromino.row + row][currentTetromino.col + col] =
@@ -124,21 +131,6 @@ function placeTetromino() {
   requestAnimationFrame(() => {
     currentTetromino = getNextTetromino();
   });
-}
-
-function showGameOver() {
-  assertNotNull(context);
-
-  gameStatus = GameStatus.GameOver;
-  context.fillStyle = 'black';
-  context.globalAlpha = 0.75;
-  context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
-  context.globalAlpha = 1;
-  context.fillStyle = 'white';
-  context.font = '24px "Press Start 2P", monospace';
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-  context.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
 }
 
 function loop(timestamp: number) {
