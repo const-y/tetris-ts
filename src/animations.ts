@@ -56,3 +56,41 @@ export function gameOverAnimation(
 
   requestAnimationFrame(loop);
 }
+
+export function deletingAnimation(
+  context: CanvasRenderingContext2D,
+  rows: number[],
+  callback: () => void
+) {
+  let previousTime = 0;
+  const delay = 100;
+  const repeatCount = 5;
+  let repeat = 0;
+
+  function loop(timestamp: number) {
+    if (repeat > repeatCount) {
+      return callback();
+    }
+
+    if (timestamp > previousTime + delay) {
+      repeat++;
+      previousTime = timestamp;
+    }
+
+    rows.forEach((row) => {
+      context.fillStyle = repeat % 2 === 0 ? 'white' : 'indianred';
+      for (let col = 0; col < colCount; col++) {
+        context.fillRect(
+          col * cellSize,
+          row * cellSize,
+          cellSize - 1,
+          cellSize - 1
+        );
+      }
+    });
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+}

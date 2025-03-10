@@ -1,4 +1,4 @@
-import { gameOverAnimation } from './animations';
+import { deletingAnimation, gameOverAnimation } from './animations';
 import { GameStatus, tetrominos } from './constants';
 import './style.css';
 import { PlayField, Tetromino, TetrominoName } from './types';
@@ -32,8 +32,8 @@ let score = 0;
 let highScore = parseInt(localStorage.getItem('highScore') ?? '0', 10);
 let previousTime = 0;
 let level = 1;
-let deletingRowIndexes: number[] = [];
 let gameStatus = GameStatus.Paused;
+let animationFrameId: number | null = null;
 
 document.getElementById('record')!.textContent = `Record: ${highScore}`;
 
@@ -74,21 +74,23 @@ function removeFullRows(fullRows: number[]) {
     playField.splice(row, 1);
     playField.unshift(new Array(playField[0].length).fill(0));
   }
-
-  deletingRowIndexes = [];
 }
 
 function clearRows(): number {
-  deletingRowIndexes = findFullRows();
-  const removingRowsCount = deletingRowIndexes.length;
+  const deletingRowIndexes = findFullRows();
 
   if (deletingRowIndexes.length > 0) {
-    setTimeout(() => {
+    gameStatus = GameStatus.Animation;
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    assertNotNull(context);
+    deletingAnimation(context, deletingRowIndexes, () => {
       removeFullRows(deletingRowIndexes);
-    }, 300);
+      gameStatus = GameStatus.Running;
+      animationFrameId = requestAnimationFrame(loop);
+    });
   }
 
-  return removingRowsCount;
+  return deletingRowIndexes.length;
 }
 
 function placeTetromino() {
@@ -97,12 +99,16 @@ function placeTetromino() {
       if (currentTetromino.matrix[row][col]) {
         // если край фигуры после установки вылезает за границы поля, то игра закончилась
         if (currentTetromino.row + row < 0) {
-          assertNotNull(context);
+          if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+          }
+
           gameStatus = GameStatus.Animation;
+          assertNotNull(context);
 
           return gameOverAnimation(context, () => {
             gameStatus = GameStatus.GameOver;
-            requestAnimationFrame(loop);
+            animationFrameId = requestAnimationFrame(loop);
           });
         }
         // если всё в порядке, то записываем в массив игрового поля нашу фигуру
@@ -140,7 +146,7 @@ function loop(timestamp: number) {
 
   assertNotNull(context);
   context.clearRect(0, 0, canvas.width, canvas.height);
-  renderPlayField(context, playField, deletingRowIndexes, timestamp);
+  renderPlayField(context, playField);
 
   if (currentTetromino) {
     if (timestamp - previousTime > getDelay(level)) {
@@ -177,14 +183,14 @@ function loop(timestamp: number) {
     });
   }
 
-  requestAnimationFrame(loop);
+  animationFrameId = requestAnimationFrame(loop);
 }
 
 const startButton = document.getElementById('start') as HTMLButtonElement;
 startButton.addEventListener('click', () => {
   gameStatus = GameStatus.Running;
   startButton.style.display = 'none';
-  requestAnimationFrame(loop);
+  animationFrameId = requestAnimationFrame(loop);
 });
 
 document.addEventListener('keydown', function (e) {
