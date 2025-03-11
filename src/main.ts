@@ -1,5 +1,5 @@
 import { deletingAnimation, gameOverAnimation } from './animations';
-import { GameStatus, tetrominos } from './constants';
+import { GameStatus, rowCount, tetrominos } from './constants';
 import './style.css';
 import { PlayField, Tetromino, TetrominoName } from './types';
 import {
@@ -139,6 +139,30 @@ function game() {
     });
   }
 
+  function findMaxValidRow(tetromino: Tetromino): number {
+    for (let row = tetromino.row; row < rowCount; row++) {
+      if (!isValidMove(playField, tetromino.matrix, row + 1, tetromino.col)) {
+        return row;
+      }
+    }
+
+    return 0;
+  }
+
+  function renderTetrominoShadow() {
+    if (currentTetromino.row < -1 && gameStatus !== GameStatus.Running) return;
+
+    assertNotNull(context);
+    context.globalAlpha = 0.2;
+
+    renderTetromino(context, {
+      ...currentTetromino,
+      row: findMaxValidRow(currentTetromino),
+    });
+
+    context.globalAlpha = 1;
+  }
+
   function loop(timestamp: number) {
     if (gameStatus !== GameStatus.Running) {
       return;
@@ -169,6 +193,8 @@ function game() {
       assertNotNull(context);
       renderTetromino(context, currentTetromino);
       assertNotNull(nextContext);
+
+      renderTetrominoShadow();
 
       const nextTetrominoName = tetrominoQueue[0];
       const nextTetrominoMatrix = tetrominos[nextTetrominoName];
