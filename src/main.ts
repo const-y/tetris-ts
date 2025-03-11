@@ -33,7 +33,6 @@ let highScore = parseInt(localStorage.getItem('highScore') ?? '0', 10);
 let previousTime = 0;
 let level = 1;
 let gameStatus = GameStatus.Paused;
-let animationFrameId: number | null = null;
 
 document.getElementById('record')!.textContent = `Record: ${highScore}`;
 
@@ -77,12 +76,11 @@ function clearRows(): number {
 
   if (deletingRowIndexes.length > 0) {
     gameStatus = GameStatus.Animation;
-    stopCurrentAnimation();
     assertNotNull(context);
     deletingAnimation(context, deletingRowIndexes, playField, () => {
       removeFullRows(deletingRowIndexes);
       gameStatus = GameStatus.Running;
-      animationFrameId = requestAnimationFrame(loop);
+      requestAnimationFrame(loop);
     });
   }
 
@@ -95,13 +93,12 @@ function placeTetromino() {
       if (currentTetromino.matrix[row][col]) {
         // если край фигуры после установки вылезает за границы поля, то игра закончилась
         if (currentTetromino.row + row < 0) {
-          stopCurrentAnimation();
           gameStatus = GameStatus.Animation;
           assertNotNull(context);
 
           return gameOverAnimation(context, () => {
             gameStatus = GameStatus.GameOver;
-            animationFrameId = requestAnimationFrame(loop);
+            requestAnimationFrame(loop);
           });
         }
         // если всё в порядке, то записываем в массив игрового поля нашу фигуру
@@ -126,8 +123,6 @@ function placeTetromino() {
   document.getElementById('score')!.textContent = `Score: ${score}`;
   document.getElementById('record')!.textContent = `Record: ${highScore}`;
   document.getElementById('level')!.textContent = `Level: ${level}`;
-
-  currentTetromino = getNextTetromino();
 
   requestAnimationFrame(() => {
     currentTetromino = getNextTetromino();
@@ -178,28 +173,25 @@ function loop(timestamp: number) {
     });
   }
 
-  animationFrameId = requestAnimationFrame(loop);
+  requestAnimationFrame(loop);
 }
 
 const startButton = document.getElementById('start') as HTMLButtonElement;
 startButton.addEventListener('click', () => {
   gameStatus = GameStatus.Running;
   startButton.style.display = 'none';
-  animationFrameId = requestAnimationFrame(loop);
+  requestAnimationFrame(loop);
 });
 
 document.addEventListener('keydown', function (e) {
   if (gameStatus !== GameStatus.Running) return;
 
-  // стрелки влево и вправо
   if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
     const col =
       e.key === 'ArrowLeft'
-        ? // если влево, то уменьшаем индекс в столбце, если вправо — увеличиваем
-          currentTetromino.col - 1
+        ? currentTetromino.col - 1
         : currentTetromino.col + 1;
 
-    // если так ходить можно, то запоминаем текущее положение
     if (
       isValidMove(playField, currentTetromino.matrix, currentTetromino.row, col)
     ) {
@@ -207,11 +199,8 @@ document.addEventListener('keydown', function (e) {
     }
   }
 
-  // стрелка вверх — поворот
   if (e.key === 'ArrowUp') {
-    // поворачиваем фигуру на 90 градусов
     const matrix = rotate(currentTetromino.matrix);
-    // если так ходить можно — запоминаем
     if (
       isValidMove(playField, matrix, currentTetromino.row, currentTetromino.col)
     ) {
@@ -219,11 +208,9 @@ document.addEventListener('keydown', function (e) {
     }
   }
 
-  // стрелка вниз — ускорить падение
   if (e.key === 'ArrowDown') {
-    // смещаем фигуру на строку вниз
     const row = currentTetromino.row + 1;
-    // если опускаться больше некуда — запоминаем новое положение
+
     if (
       !isValidMove(
         playField,
@@ -233,17 +220,9 @@ document.addEventListener('keydown', function (e) {
       )
     ) {
       currentTetromino.row = row - 1;
-      // ставим на место и смотрим на заполненные ряды
-      placeTetromino();
+
       return;
     }
-    // запоминаем строку, куда стала фигура
     currentTetromino.row = row;
   }
 });
-
-function stopCurrentAnimation() {
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-  }
-}
