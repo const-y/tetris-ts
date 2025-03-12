@@ -264,6 +264,10 @@ function game() {
       }
       currentTetromino.row = row;
     }
+
+    if (e.key === ' ') {
+      currentTetromino.row = findMaxValidRow(currentTetromino);
+    }
   }
 
   document.addEventListener('keydown', handleKeydown);
