@@ -1,5 +1,5 @@
 import { deletingAnimation, gameOverAnimation } from './animations';
-import { GameStatus, rowCount, tetrominos } from './constants';
+import { buttonLabels, GameStatus, rowCount, tetrominos } from './constants';
 import './style.css';
 import { PlayField, Tetromino, TetrominoName } from './types';
 import {
@@ -10,12 +10,14 @@ import {
   increaseScore,
   isValidMove,
   randomGenerator,
+  renderPauseIcon,
   renderPlayField,
   renderTetromino,
   rotate,
 } from './utils';
 
 const startButton = document.getElementById('start') as HTMLButtonElement;
+const pauseButton = document.getElementById('pause') as HTMLButtonElement;
 
 function game() {
   const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -99,8 +101,10 @@ function game() {
       requestAnimationFrame(loop);
     });
 
-    removeEventListener('keydown', handleKeydown);
+    document.removeEventListener('keydown', handleKeydown);
+    pauseButton.removeEventListener('click', togglePause);
     startButton.style.display = 'inherit';
+    pauseButton.style.display = 'none';
   }
 
   function placeTetromino() {
@@ -164,6 +168,12 @@ function game() {
   }
 
   function loop(timestamp: number) {
+    if (gameStatus === GameStatus.Paused) {
+      assertNotNull(context);
+      renderPauseIcon(context);
+      return;
+    }
+
     if (gameStatus !== GameStatus.Running) {
       return;
     }
@@ -212,7 +222,22 @@ function game() {
     requestAnimationFrame(loop);
   }
 
+  function togglePause() {
+    if (gameStatus === GameStatus.Paused) {
+      gameStatus = GameStatus.Running;
+      requestAnimationFrame(loop);
+      pauseButton.innerText = buttonLabels.pause;
+    } else {
+      gameStatus = GameStatus.Paused;
+      pauseButton.innerText = buttonLabels.resume;
+    }
+  }
+
   function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      togglePause();
+    }
+
     if (gameStatus !== GameStatus.Running) return;
 
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -271,6 +296,7 @@ function game() {
   }
 
   document.addEventListener('keydown', handleKeydown);
+  pauseButton.addEventListener('click', togglePause);
 
   gameStatus = GameStatus.Running;
   requestAnimationFrame(loop);
@@ -279,4 +305,5 @@ function game() {
 startButton.addEventListener('click', () => {
   game();
   startButton.style.display = 'none';
+  pauseButton.style.display = 'inherit';
 });

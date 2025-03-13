@@ -144,3 +144,32 @@ export function getDelay(
   const delay = initialDelay * Math.pow(reductionFactor, level - 1);
   return Math.max(delay, minDelay); // Ограничиваем минимальной задержкой
 }
+
+export function renderPauseIcon(context: CanvasRenderingContext2D) {
+  assertNotNull(context);
+
+  context.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+
+  const barWidth = cellSize / 2;
+  const barHeight = cellSize;
+  const gap = 8;
+
+  const xCenter = context.canvas.width / 2;
+  const yCenter = context.canvas.height / 2;
+
+  context.fillStyle = '#FFF';
+  context.fillRect(
+    xCenter - gap / 2 - barWidth,
+    yCenter - barHeight / 2,
+    barWidth,
+    barHeight
+  );
+
+  context.fillRect(
+    xCenter + gap / 2,
+    yCenter - barHeight / 2,
+    barWidth,
+    barHeight
+  );
+}

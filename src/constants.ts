@@ -40,7 +40,7 @@ export const tetrominos: Record<TetrominoName, Matrix> = {
     [1, 1, 1],
     [0, 0, 0],
   ],
-};
+} as const;
 
 export const colors: Record<TetrominoName, string> = {
   I: '#00aee6',
@@ -50,7 +50,7 @@ export const colors: Record<TetrominoName, string> = {
   S: '#6FDA87',
   T: '#A97FFF',
   Z: '#FF6B6B',
-};
+} as const;
 
 export enum GameStatus {
   Running,
@@ -58,3 +58,9 @@ export enum GameStatus {
   GameOver,
   Animation,
 }
+
+export const buttonLabels = {
+  start: 'Start',
+  pause: 'Pause',
+  resume: 'Resume',
+} as const;
