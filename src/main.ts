@@ -5,6 +5,7 @@ import { PlayField, Tetromino, TetrominoName } from './types';
 import {
   assertNotNull,
   assertNotUndefined,
+  findMaxValidRow,
   generatePlayField,
   getDelay,
   increaseScore,
@@ -13,6 +14,7 @@ import {
   renderPauseIcon,
   renderPlayField,
   renderTetromino,
+  renderTetrominoShadow,
   rotate,
 } from './utils';
 
@@ -143,28 +145,41 @@ function game() {
     });
   }
 
-  function findMaxValidRow(tetromino: Tetromino): number {
-    for (let row = tetromino.row; row < rowCount; row++) {
-      if (!isValidMove(playField, tetromino.matrix, row + 1, tetromino.col)) {
-        return row;
-      }
+  function update() {
+    if (
+      !isValidMove(
+        playField,
+        currentTetromino.matrix,
+        currentTetromino.row,
+        currentTetromino.col
+      )
+    ) {
+      currentTetromino.row--;
+      placeTetromino();
     }
-
-    return 0;
   }
 
-  function renderTetrominoShadow() {
-    if (currentTetromino.row < -1 && gameStatus !== GameStatus.Running) return;
+  function draw() {
+    const nextTetrominoName = tetrominoQueue[0];
+    const nextTetrominoMatrix = tetrominos[nextTetrominoName];
 
     assertNotNull(context);
-    context.globalAlpha = 0.2;
+    assertNotNull(nextContext);
 
-    renderTetromino(context, {
-      ...currentTetromino,
-      row: findMaxValidRow(currentTetromino),
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    renderPlayField(context, playField);
+    renderTetromino(context, currentTetromino);
+    renderTetrominoShadow(context, currentTetromino, playField);
+
+    nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+
+    renderTetromino(nextContext, {
+      name: nextTetrominoName,
+      matrix: nextTetrominoMatrix,
+      row: 0,
+      col: 0,
     });
-
-    context.globalAlpha = 1;
   }
 
   function loop(timestamp: number) {
@@ -178,45 +193,12 @@ function game() {
       return;
     }
 
-    assertNotNull(context);
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    renderPlayField(context, playField);
+    draw();
 
-    if (currentTetromino) {
-      if (timestamp - previousTime > getDelay(level)) {
-        previousTime = timestamp;
-        currentTetromino.row++;
-
-        if (
-          !isValidMove(
-            playField,
-            currentTetromino.matrix,
-            currentTetromino.row,
-            currentTetromino.col
-          )
-        ) {
-          currentTetromino.row--;
-          placeTetromino();
-        }
-      }
-
-      assertNotNull(context);
-      renderTetromino(context, currentTetromino);
-      assertNotNull(nextContext);
-
-      renderTetrominoShadow();
-
-      const nextTetrominoName = tetrominoQueue[0];
-      const nextTetrominoMatrix = tetrominos[nextTetrominoName];
-
-      nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-
-      renderTetromino(nextContext, {
-        name: nextTetrominoName,
-        matrix: nextTetrominoMatrix,
-        row: 0,
-        col: 0,
-      });
+    if (timestamp - previousTime > getDelay(level)) {
+      previousTime = timestamp;
+      currentTetromino.row++;
+      update();
     }
 
     requestAnimationFrame(loop);
@@ -291,7 +273,7 @@ function game() {
     }
 
     if (e.key === ' ') {
-      currentTetromino.row = findMaxValidRow(currentTetromino);
+      currentTetromino.row = findMaxValidRow(currentTetromino, playField);
     }
   }
 

@@ -173,3 +173,32 @@ export function renderPauseIcon(context: CanvasRenderingContext2D) {
     barHeight
   );
 }
+
+export function findMaxValidRow(
+  tetromino: Tetromino,
+  playField: PlayField
+): number {
+  for (let row = tetromino.row; row < rowCount; row++) {
+    if (!isValidMove(playField, tetromino.matrix, row + 1, tetromino.col)) {
+      return row;
+    }
+  }
+
+  return 0;
+}
+
+export function renderTetrominoShadow(
+  context: CanvasRenderingContext2D,
+  tetromino: Tetromino,
+  playField: PlayField
+) {
+  assertNotNull(context);
+  context.globalAlpha = 0.2;
+
+  renderTetromino(context, {
+    ...tetromino,
+    row: findMaxValidRow(tetromino, playField),
+  });
+
+  context.globalAlpha = 1;
+}
