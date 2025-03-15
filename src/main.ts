@@ -1,5 +1,10 @@
 import { deletingAnimation, gameOverAnimation } from './animations';
-import { buttonLabels, GameStatus, rowCount, tetrominos } from './constants';
+import deletingSound from './assets/sounds/delete.mp3';
+import dropSound from './assets/sounds/drop.mp3';
+import gameOverSound from './assets/sounds/game-over.mp3';
+import levelUpSound from './assets/sounds/level-up.mp3';
+import { buttonLabels, GameStatus, tetrominos } from './constants';
+import soundManager from './sound-manager';
 import './style.css';
 import { PlayField, Tetromino, TetrominoName } from './types';
 import {
@@ -43,6 +48,11 @@ function game() {
 
   document.getElementById('record')!.textContent = `Record: ${highScore}`;
 
+  soundManager.loadSound('drop', dropSound);
+  soundManager.loadSound('game-over', gameOverSound);
+  soundManager.loadSound('deleting', deletingSound);
+  soundManager.loadSound('level-up', levelUpSound);
+
   function getNextTetromino(): Tetromino {
     tetrominoQueue.push(tetrominoGenerator.next().value as TetrominoName);
     const name = tetrominoQueue.shift();
@@ -83,6 +93,7 @@ function game() {
 
     if (deletingRowIndexes.length > 0) {
       gameStatus = GameStatus.Animation;
+      soundManager.playSound('deleting');
       assertNotNull(context);
       deletingAnimation(context, deletingRowIndexes, playField, () => {
         removeFullRows(deletingRowIndexes);
@@ -95,6 +106,8 @@ function game() {
   }
 
   function finishGame() {
+    console.log('Finish game');
+    soundManager.playSound('game-over');
     gameStatus = GameStatus.Animation;
     assertNotNull(context);
 
@@ -129,6 +142,9 @@ function game() {
 
     if (clearedRowsCount > 0) {
       level = Math.floor(score / 1000) + 1;
+      if (score % 1000 === 0) {
+        soundManager.playSound('level-up');
+      }
     }
 
     if (score > highScore) {
@@ -183,6 +199,7 @@ function game() {
   }
 
   function loop(timestamp: number) {
+    console.log('loop');
     if (gameStatus === GameStatus.Paused) {
       assertNotNull(context);
       renderPauseIcon(context);
@@ -215,6 +232,38 @@ function game() {
     }
   }
 
+  function softDrop() {
+    const row = currentTetromino.row + 1;
+
+    if (
+      !isValidMove(
+        playField,
+        currentTetromino.matrix,
+        row,
+        currentTetromino.col
+      )
+    ) {
+      currentTetromino.row = row - 1;
+
+      return;
+    }
+    currentTetromino.row = row;
+  }
+
+  function hardDrop() {
+    soundManager.playSound('drop');
+    currentTetromino.row = findMaxValidRow(currentTetromino, playField);
+  }
+
+  function rotateCurrentTetromino() {
+    const matrix = rotate(currentTetromino.matrix);
+    if (
+      isValidMove(playField, matrix, currentTetromino.row, currentTetromino.col)
+    ) {
+      currentTetromino.matrix = matrix;
+    }
+  }
+
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape') {
       togglePause();
@@ -241,39 +290,15 @@ function game() {
     }
 
     if (e.key === 'ArrowUp') {
-      const matrix = rotate(currentTetromino.matrix);
-      if (
-        isValidMove(
-          playField,
-          matrix,
-          currentTetromino.row,
-          currentTetromino.col
-        )
-      ) {
-        currentTetromino.matrix = matrix;
-      }
+      rotateCurrentTetromino();
     }
 
     if (e.key === 'ArrowDown') {
-      const row = currentTetromino.row + 1;
-
-      if (
-        !isValidMove(
-          playField,
-          currentTetromino.matrix,
-          row,
-          currentTetromino.col
-        )
-      ) {
-        currentTetromino.row = row - 1;
-
-        return;
-      }
-      currentTetromino.row = row;
+      softDrop();
     }
 
     if (e.key === ' ') {
-      currentTetromino.row = findMaxValidRow(currentTetromino, playField);
+      hardDrop();
     }
   }
 
