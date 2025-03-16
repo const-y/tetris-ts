@@ -75,6 +75,23 @@ body {
   box-shadow: 2px 2px 0px #000;
 }
 
+#mute {
+  background: none;
+  border: none;
+  font-size: 24px; /* Размер иконки */
+  cursor: pointer;
+  color: #333333; /* Цвет иконки */
+  transition: color 0.2s;
+}
+
+#mute:hover {
+  color: #000; /* Тёмнее при наведении */
+}
+
+#mute:focus {
+  outline: none; /* Убираем обводку */
+}
+
 .controls {
   margin-top: 24px;
   display: flex;

@@ -5,6 +5,7 @@ import gameOverSound from './assets/sounds/game-over.mp3';
 import levelUpSound from './assets/sounds/level-up.mp3';
 import { buttonLabels, GameStatus, tetrominos } from './constants';
 import soundManager from './sound-manager';
+import storageManager from './storage-manager';
 import './style.css';
 import { PlayField, Tetromino, TetrominoName } from './types';
 import {
@@ -25,6 +26,7 @@ import {
 
 const startButton = document.getElementById('start') as HTMLButtonElement;
 const pauseButton = document.getElementById('pause') as HTMLButtonElement;
+const muteButton = document.getElementById('mute') as HTMLButtonElement;
 
 function game() {
   const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -41,7 +43,7 @@ function game() {
   const playField: PlayField = generatePlayField();
   let currentTetromino = getNextTetromino();
   let score = 0;
-  let highScore = parseInt(localStorage.getItem('highScore') ?? '0', 10);
+  let highScore = storageManager.highScore;
   let previousTime = 0;
   let level = 1;
   let gameStatus = GameStatus.Paused;
@@ -52,6 +54,8 @@ function game() {
   soundManager.loadSound('game-over', gameOverSound);
   soundManager.loadSound('deleting', deletingSound);
   soundManager.loadSound('level-up', levelUpSound);
+
+  updateMuteButton();
 
   function getNextTetromino(): Tetromino {
     tetrominoQueue.push(tetrominoGenerator.next().value as TetrominoName);
@@ -105,8 +109,17 @@ function game() {
     return deletingRowIndexes.length;
   }
 
+  function handleMuteClick() {
+    soundManager.toggleMute();
+    updateMuteButton();
+    muteButton.blur();
+  }
+
+  function updateMuteButton() {
+    muteButton.innerText = soundManager.isMuted ? '🔇' : '🔊';
+  }
+
   function finishGame() {
-    console.log('Finish game');
     soundManager.playSound('game-over');
     gameStatus = GameStatus.Animation;
     assertNotNull(context);
@@ -118,6 +131,7 @@ function game() {
 
     document.removeEventListener('keydown', handleKeydown);
     pauseButton.removeEventListener('click', togglePause);
+    muteButton.removeEventListener('click', handleMuteClick);
     startButton.style.display = 'inherit';
     pauseButton.style.display = 'none';
   }
@@ -162,6 +176,8 @@ function game() {
   }
 
   function update() {
+    console.log(soundManager.isMuted);
+
     if (
       !isValidMove(
         playField,
@@ -199,7 +215,6 @@ function game() {
   }
 
   function loop(timestamp: number) {
-    console.log('loop');
     if (gameStatus === GameStatus.Paused) {
       assertNotNull(context);
       renderPauseIcon(context);
@@ -304,6 +319,7 @@ function game() {
 
   document.addEventListener('keydown', handleKeydown);
   pauseButton.addEventListener('click', togglePause);
+  muteButton.addEventListener('click', handleMuteClick);
 
   gameStatus = GameStatus.Running;
   requestAnimationFrame(loop);
