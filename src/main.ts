@@ -4,6 +4,7 @@ import dropSound from './assets/sounds/drop.mp3';
 import gameOverSound from './assets/sounds/game-over.mp3';
 import levelUpSound from './assets/sounds/level-up.mp3';
 import { buttonLabels, GameStatus, tetrominos } from './constants';
+import GameState from './game-state';
 import soundManager from './sound-manager';
 import storageManager from './storage-manager';
 import './style.css';
@@ -14,7 +15,6 @@ import {
   findMaxValidRow,
   generatePlayField,
   getDelay,
-  increaseScore,
   isValidMove,
   randomGenerator,
   renderPauseIcon,
@@ -29,6 +29,7 @@ const pauseButton = document.getElementById('pause') as HTMLButtonElement;
 const muteButton = document.getElementById('mute') as HTMLButtonElement;
 
 function game() {
+  const gameState = new GameState();
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const context = canvas.getContext('2d');
   const nextCanvas = document.getElementById('next') as HTMLCanvasElement;
@@ -42,11 +43,9 @@ function game() {
 
   const playField: PlayField = generatePlayField();
   let currentTetromino = getNextTetromino();
-  let score = 0;
   let highScore = storageManager.highScore;
   let previousTime = 0;
-  let level = 1;
-  let gameStatus = GameStatus.Paused;
+  let previousLevel = gameState.level;
 
   document.getElementById('record')!.textContent = `Record: ${highScore}`;
 
@@ -56,6 +55,13 @@ function game() {
   soundManager.loadSound('level-up', levelUpSound);
 
   updateMuteButton();
+
+  gameState.subscribe(() => {
+    if (gameState.level > previousLevel) {
+      previousLevel = gameState.level;
+      soundManager.playSound('level-up');
+    }
+  });
 
   function getNextTetromino(): Tetromino {
     tetrominoQueue.push(tetrominoGenerator.next().value as TetrominoName);
@@ -96,12 +102,12 @@ function game() {
     const deletingRowIndexes = findFullRows();
 
     if (deletingRowIndexes.length > 0) {
-      gameStatus = GameStatus.Animation;
+      gameState.setStatus(GameStatus.Animation);
       soundManager.playSound('deleting');
       assertNotNull(context);
       deletingAnimation(context, deletingRowIndexes, playField, () => {
         removeFullRows(deletingRowIndexes);
-        gameStatus = GameStatus.Running;
+        gameState.setStatus(GameStatus.Running);
         requestAnimationFrame(loop);
       });
     }
@@ -121,11 +127,11 @@ function game() {
 
   function finishGame() {
     soundManager.playSound('game-over');
-    gameStatus = GameStatus.Animation;
+    gameState.setStatus(GameStatus.Animation);
     assertNotNull(context);
 
     gameOverAnimation(context, () => {
-      gameStatus = GameStatus.GameOver;
+      gameState.setStatus(GameStatus.GameOver);
       requestAnimationFrame(loop);
     });
 
@@ -152,23 +158,16 @@ function game() {
     }
 
     const clearedRowsCount = clearRows();
-    score = increaseScore(score, clearedRowsCount);
+    gameState.updateScore(clearedRowsCount);
 
-    if (clearedRowsCount > 0) {
-      level = Math.floor(score / 1000) + 1;
-      if (score % 1000 === 0) {
-        soundManager.playSound('level-up');
-      }
-    }
-
-    if (score > highScore) {
-      highScore = score;
+    if (gameState.score > highScore) {
+      highScore = gameState.score;
       localStorage.setItem('highScore', highScore.toString());
     }
 
-    document.getElementById('score')!.textContent = `Score: ${score}`;
+    document.getElementById('score')!.textContent = `Score: ${gameState.score}`;
     document.getElementById('record')!.textContent = `Record: ${highScore}`;
-    document.getElementById('level')!.textContent = `Level: ${level}`;
+    document.getElementById('level')!.textContent = `Level: ${gameState.level}`;
 
     requestAnimationFrame(() => {
       currentTetromino = getNextTetromino();
@@ -215,19 +214,19 @@ function game() {
   }
 
   function loop(timestamp: number) {
-    if (gameStatus === GameStatus.Paused) {
+    if (gameState.status === GameStatus.Paused) {
       assertNotNull(context);
       renderPauseIcon(context);
       return;
     }
 
-    if (gameStatus !== GameStatus.Running) {
+    if (gameState.status !== GameStatus.Running) {
       return;
     }
 
     draw();
 
-    if (timestamp - previousTime > getDelay(level)) {
+    if (timestamp - previousTime > getDelay(gameState.level)) {
       previousTime = timestamp;
       currentTetromino.row++;
       update();
@@ -237,12 +236,12 @@ function game() {
   }
 
   function togglePause() {
-    if (gameStatus === GameStatus.Paused) {
-      gameStatus = GameStatus.Running;
+    if (gameState.status === GameStatus.Paused) {
+      gameState.setStatus(GameStatus.Running);
       requestAnimationFrame(loop);
       pauseButton.innerText = buttonLabels.pause;
     } else {
-      gameStatus = GameStatus.Paused;
+      gameState.setStatus(GameStatus.Paused);
       pauseButton.innerText = buttonLabels.resume;
     }
   }
@@ -284,7 +283,7 @@ function game() {
       togglePause();
     }
 
-    if (gameStatus !== GameStatus.Running) return;
+    if (gameState.status !== GameStatus.Running) return;
 
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       const col =
@@ -321,7 +320,7 @@ function game() {
   pauseButton.addEventListener('click', togglePause);
   muteButton.addEventListener('click', handleMuteClick);
 
-  gameStatus = GameStatus.Running;
+  gameState.setStatus(GameStatus.Running);
   requestAnimationFrame(loop);
 }
 
