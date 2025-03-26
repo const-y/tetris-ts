@@ -3,6 +3,7 @@ import deletingSound from './assets/sounds/delete.mp3';
 import dropSound from './assets/sounds/drop.mp3';
 import gameOverSound from './assets/sounds/game-over.mp3';
 import levelUpSound from './assets/sounds/level-up.mp3';
+import ScoreBoard from './components/score-board';
 import { buttonLabels, GameStatus, tetrominos } from './constants';
 import GameState from './game-state';
 import soundManager from './sound-manager';
@@ -27,14 +28,30 @@ import {
 const startButton = document.getElementById('start') as HTMLButtonElement;
 const pauseButton = document.getElementById('pause') as HTMLButtonElement;
 const muteButton = document.getElementById('mute') as HTMLButtonElement;
+const scoreBoardContainer = document.getElementById('labels') as HTMLDivElement;
+
+soundManager.loadSound('drop', dropSound);
+soundManager.loadSound('game-over', gameOverSound);
+soundManager.loadSound('deleting', deletingSound);
+soundManager.loadSound('level-up', levelUpSound);
 
 function game() {
-  const gameState = new GameState();
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const context = canvas.getContext('2d');
   const nextCanvas = document.getElementById('next') as HTMLCanvasElement;
   const nextContext = nextCanvas.getContext('2d');
   const tetrominoGenerator = randomGenerator();
+  const gameState = new GameState();
+  const scoreBoard = new ScoreBoard(scoreBoardContainer, gameState);
+
+  let previousLevel = gameState.level;
+
+  gameState.subscribe(() => {
+    if (gameState.level > previousLevel) {
+      previousLevel = gameState.level;
+      soundManager.playSound('level-up');
+    }
+  });
 
   const tetrominoQueue: TetrominoName[] = [
     tetrominoGenerator.next().value as TetrominoName,
@@ -45,23 +62,8 @@ function game() {
   let currentTetromino = getNextTetromino();
   let highScore = storageManager.highScore;
   let previousTime = 0;
-  let previousLevel = gameState.level;
-
-  document.getElementById('record')!.textContent = `Record: ${highScore}`;
-
-  soundManager.loadSound('drop', dropSound);
-  soundManager.loadSound('game-over', gameOverSound);
-  soundManager.loadSound('deleting', deletingSound);
-  soundManager.loadSound('level-up', levelUpSound);
 
   updateMuteButton();
-
-  gameState.subscribe(() => {
-    if (gameState.level > previousLevel) {
-      previousLevel = gameState.level;
-      soundManager.playSound('level-up');
-    }
-  });
 
   function getNextTetromino(): Tetromino {
     tetrominoQueue.push(tetrominoGenerator.next().value as TetrominoName);
@@ -140,6 +142,8 @@ function game() {
     muteButton.removeEventListener('click', handleMuteClick);
     startButton.style.display = 'inherit';
     pauseButton.style.display = 'none';
+
+    scoreBoard.destroy();
   }
 
   function placeTetromino() {
@@ -164,10 +168,6 @@ function game() {
       highScore = gameState.score;
       localStorage.setItem('highScore', highScore.toString());
     }
-
-    document.getElementById('score')!.textContent = `Score: ${gameState.score}`;
-    document.getElementById('record')!.textContent = `Record: ${highScore}`;
-    document.getElementById('level')!.textContent = `Level: ${gameState.level}`;
 
     requestAnimationFrame(() => {
       currentTetromino = getNextTetromino();
