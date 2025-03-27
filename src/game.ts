@@ -161,11 +161,9 @@ class Game {
     }
 
     const clearedRowsCount = this.clearRows();
-    this.gameState.updateScore(clearedRowsCount);
 
-    requestAnimationFrame(() => {
-      this.currentTetromino = this.getNextTetromino();
-    });
+    this.gameState.updateScore(clearedRowsCount);
+    this.currentTetromino = this.getNextTetromino();
   }
 
   private update() {
@@ -206,6 +204,7 @@ class Game {
 
   start() {
     this.gameState.reset();
+    this.playField = generatePlayField();
     this.gameState.setStatus(GameStatus.Running);
     requestAnimationFrame(this.loop);
   }
@@ -275,6 +274,8 @@ class Game {
       this.currentTetromino,
       this.playField
     );
+
+    this.placeTetromino();
   }
 
   finish() {
