@@ -8,6 +8,13 @@ class GameState {
   status = GameStatus.Paused;
   observers: (() => void)[] = [];
 
+  reset() {
+    this.score = 0;
+    this.level = 1;
+    this.linesCleared = 0;
+    this.status = GameStatus.Paused;
+  }
+
   subscribe(observer: () => void) {
     this.observers.push(observer);
   }

@@ -29,11 +29,22 @@ const startButton = document.getElementById('start') as HTMLButtonElement;
 const pauseButton = document.getElementById('pause') as HTMLButtonElement;
 const muteButton = document.getElementById('mute') as HTMLButtonElement;
 const scoreBoardContainer = document.getElementById('labels') as HTMLDivElement;
+const gameState = new GameState();
+new ScoreBoard(scoreBoardContainer, gameState);
 
 soundManager.loadSound('drop', dropSound);
 soundManager.loadSound('game-over', gameOverSound);
 soundManager.loadSound('deleting', deletingSound);
 soundManager.loadSound('level-up', levelUpSound);
+
+let previousLevel = gameState.level;
+
+gameState.subscribe(() => {
+  if (gameState.level > previousLevel) {
+    previousLevel = gameState.level;
+    soundManager.playSound('level-up');
+  }
+});
 
 function game() {
   const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -41,17 +52,8 @@ function game() {
   const nextCanvas = document.getElementById('next') as HTMLCanvasElement;
   const nextContext = nextCanvas.getContext('2d');
   const tetrominoGenerator = randomGenerator();
-  const gameState = new GameState();
-  const scoreBoard = new ScoreBoard(scoreBoardContainer, gameState);
 
-  let previousLevel = gameState.level;
-
-  gameState.subscribe(() => {
-    if (gameState.level > previousLevel) {
-      previousLevel = gameState.level;
-      soundManager.playSound('level-up');
-    }
-  });
+  gameState.reset();
 
   const tetrominoQueue: TetrominoName[] = [
     tetrominoGenerator.next().value as TetrominoName,
@@ -142,8 +144,6 @@ function game() {
     muteButton.removeEventListener('click', handleMuteClick);
     startButton.style.display = 'inherit';
     pauseButton.style.display = 'none';
-
-    scoreBoard.destroy();
   }
 
   function placeTetromino() {
