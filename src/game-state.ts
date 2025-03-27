@@ -26,7 +26,7 @@ class GameState {
   updateScore(clearedRows: number) {
     this.score = increaseScore(this.score, clearedRows);
     this.linesCleared += clearedRows;
-    this.level = Math.floor(this.score / 1000) + 1;
+    this.level = Math.floor(this.linesCleared / 10) + 1;
     this.notify();
   }
 
