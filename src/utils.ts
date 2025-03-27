@@ -23,7 +23,7 @@ export function shuffle<T>(array: T[]): T[] {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-export function* randomGenerator() {
+export function* randomGenerator(): Generator<TetrominoName> {
   let bag: TetrominoName[] = [];
 
   while (true) {
@@ -31,7 +31,12 @@ export function* randomGenerator() {
       bag = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
       bag = shuffle(bag);
     }
-    yield bag.pop();
+
+    const generated: TetrominoName | undefined = bag.pop();
+
+    assertNotUndefined(generated);
+
+    yield generated;
   }
 }
 

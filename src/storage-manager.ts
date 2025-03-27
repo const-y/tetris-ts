@@ -19,4 +19,6 @@ const storageManager = {
   },
 };
 
+export type StorageManager = typeof storageManager;
+
 export default storageManager;

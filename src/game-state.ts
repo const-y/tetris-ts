@@ -1,12 +1,20 @@
 import { GameStatus } from './constants';
 import { increaseScore } from './utils';
+import { StorageManager } from './storage-manager';
 
 class GameState {
   score = 0;
+  highScore: number;
   level = 1;
   linesCleared = 0;
   status = GameStatus.Paused;
   observers: (() => void)[] = [];
+  storageManager: StorageManager;
+
+  constructor(storageManager: StorageManager) {
+    this.storageManager = storageManager;
+    this.highScore = storageManager.highScore;
+  }
 
   reset() {
     this.score = 0;
@@ -27,6 +35,12 @@ class GameState {
     this.score = increaseScore(this.score, clearedRows);
     this.linesCleared += clearedRows;
     this.level = Math.floor(this.linesCleared / 10) + 1;
+
+    if (this.score > this.highScore) {
+      this.highScore = this.score;
+      this.storageManager.setHighScore(this.highScore);
+    }
+
     this.notify();
   }
 

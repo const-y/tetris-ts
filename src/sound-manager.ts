@@ -61,4 +61,6 @@ const soundManager = {
   },
 };
 
+export type SoundManager = typeof soundManager;
+
 export default soundManager;
