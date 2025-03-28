@@ -86,7 +86,14 @@ class Game {
 
     renderPlayField(this.context, this.playField);
     renderTetromino(this.context, this.currentTetromino);
-    renderTetrominoShadow(this.context, this.currentTetromino, this.playField);
+
+    if (this.currentTetromino.row > -2) {
+      renderTetrominoShadow(
+        this.context,
+        this.currentTetromino,
+        this.playField
+      );
+    }
 
     this.nextContext.clearRect(
       0,
@@ -276,6 +283,7 @@ class Game {
     );
 
     this.placeTetromino();
+    this.draw();
   }
 
   finish() {

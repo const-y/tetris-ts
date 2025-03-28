@@ -197,7 +197,6 @@ export function renderTetrominoShadow(
   tetromino: Tetromino,
   playField: PlayField
 ) {
-  assertNotNull(context);
   context.globalAlpha = 0.2;
 
   renderTetromino(context, {
