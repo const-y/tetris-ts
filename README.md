@@ -18,7 +18,7 @@
 
 ## 🚀 Демо
 
-[Открыть игру](https://tetris-ts.vercel.app)
+[Открыть игру](https://tetris-ts-tau.vercel.app/)
 
 ![preview](./preview.gif)
 
